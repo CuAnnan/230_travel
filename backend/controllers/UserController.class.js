@@ -24,38 +24,54 @@ class UserController extends Controller
         res.json({user});
     }
 
+    confirmUserId(username, password)
+    {
+        const userNotFoundError = "Username or password incorrect";
+
+        return new Promise(async (resolve, reject)=>{
+            let query = await this.query(
+                "SELECT idUsers, passwordHash, username, email, address FROM Users where username = ?",
+                [username]
+            );
+            let user = query.results[0];
+            if(!user)
+            {
+                reject(userNotFoundError);
+            }
+            bcrypt.compare(password, user.passwordHash, (err, result) => {
+                if (err) {
+                    reject(userNotFoundError);
+                } else {
+                    if(result)
+                    {
+                        resolve(user);
+                    }
+                    else
+                    {
+                        reject(userNotFoundError);
+                    }
+                }
+            });
+        });
+    }
+
     async logUserIn(req, res)
     {
-        this.query(
-            "SELECT idUsers, passwordHash, username, email, address FROM Users where username = ?",
-            [req.body.username]
-        ).then((query)=> {
-            let user = query.results[0];
-            if(user)
-            {
-                bcrypt.compare(req.body.password, user.passwordHash, (err, result) => {
-                    if (err) {
-                        res.status(400);
-                        res.json({login: false});
-                    } else {
-                        delete user.passwordHash;
-                        const userAsJSON = Object.assign({}, user);
-                        const userToken = Object.assign({}, user);
-                        userToken.exp = Math.floor(Date.now() / 1000) + 3600;
-                        const token = jwt.sign(
-                            userToken,
-                            conf.express.jwt.secret
-                        );
-                        res.status(200).json({login: true, token, user:userAsJSON});
-                    }
-                });
-            }
-            else
-            {
-                res.status(400);
-                res.json({login: false});
-            }
-        });
+        try
+        {
+            let user = await this.confirmUserId(req.body.username, req.body.password);
+            delete user.passwordHash;
+            const userToken = Object.assign({}, user);
+
+            const accessToken = jwt.sign(userToken,conf.express.jwt.secret,{expiresIn: '1h'});
+            const refreshToken = jwt.sign(userToken, conf.express.jwt.secret, {expiresIn: '1d'});
+            res.status(200).json({login: true, accessToken, refreshToken, user:userToken});
+        }
+        catch(err)
+        {
+            console.log(err);
+            res.json({login:false});
+        }
     }
 
     async addUser(req, res)
@@ -75,8 +91,7 @@ class UserController extends Controller
         }
         if(errors.length)
         {
-            res.status(500);
-            res.json({errors: errors});
+            res.status(500).json({login:false, errors: errors});
             return;
         }
 
@@ -93,12 +108,12 @@ class UserController extends Controller
         }).catch((err)=>{
             if(err.code === 'ER_DUP_ENTRY')
             {
-                res.json({login:false, reason:"Duplicate email or username"});
+                res.status(500).json({login:false, errors:["Duplicate email or username"]});
             }
             else
             {
-                res.status(500);
-                res.json({login:false, reason:"Unexpected error"});
+                console.log(err);
+                res.status(500).json({login:false, errors:["Unexpected error"]});
             }
 
         });
@@ -106,43 +121,60 @@ class UserController extends Controller
 
     async updateUser(req, res)
     {
-        let fields = [];
-        let fieldValues = [];
-
-        let fieldsToCheck = ["username", "email", "address"];
-
-        for(let fieldToCheck of fieldsToCheck)
+        if(!req.user)
         {
-            if(req.body[fieldToCheck])
-            {
-                fields.push(`${fieldToCheck} = ?`);
-                fieldValues.push(req.body[fieldToCheck]);
-            }
+            console.log("Token error failed");
+            res.status(500).json({update:false, errors:["Authentication failed"]});
+            return;
         }
 
-        if(req.body.password)
+        try
         {
-            if(req.body.password === req.body.passwordConfirmation)
-            {
-                fields.push('passwordHash = ?');
-                fieldValues.push(await this.generatePasswordHash(req.body.password, PASSWORD_SALTS));
-            }
-            else
-            {
-                this.sendErrorResponse(res, "Passwords don't match");
-            }
-        }
-        let sqlString = "UPDATE Users SET "+fields.join(', ')+" WHERE idUsers = ?";
-        fieldValues.push(req.body.idUsers);
+            const user = await this.confirmUserId(req.user.username, req.body.password);
+            const fields = ['email', 'address'];
+            const fieldValues = [];
+            const sqlFields = [];
+            const errors = [];
 
-        this.query(
-            sqlString,
-            fieldValues
-        ).then((query)=>{
-            res.json({update:true});
-        }).catch((err)=>{
-            this.sendErrorResponse(res, err.message);
-        });
+            for(let field of fields)
+            {
+                if(!req.body[field])
+                {
+                    errors.push(`Field ${field} is required`);
+                }
+                sqlFields.push(`${field} = ?`);
+                fieldValues.push(req.body[field]);
+            }
+
+
+            if(req.body.newPassword)
+            {
+                if(req.body.newPassword !== req.body.passwordConfirmation)
+                {
+                    errors.push("Password incorrect");
+                }
+                sqlFields.push('passwordHash = ?')
+                fieldValues.push(await this.generatePasswordHash(req.body.newPassword, PASSWORD_SALTS));
+            }
+            fieldValues.push(user.idUsers);
+
+            if(errors.length)
+            {
+                res.status(500).json({update:false, errors});
+                return;
+            }
+
+            const {results} = await this.query(
+                `UPDATE Users SET ${sqlFields.join(', ')} WHERE idUsers = ?`,
+                fieldValues
+            );
+            res.json({results});
+        }
+        catch(err)
+        {
+            console.log(err);
+            res.status(500).json({update:false, errors:["Authentication failed"]});
+        }
     }
 
     async generatePasswordHash(password, saltRounds)

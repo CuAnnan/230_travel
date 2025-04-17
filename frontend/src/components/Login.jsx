@@ -1,6 +1,6 @@
 import React from 'react';
 import {Container,InputGroup, Button, Row, Col, Form} from 'react-bootstrap';
-import axios from 'axios';
+import {client} from '../AxiosInterceptor.js';
 
 
 import FormField from "./FormField.jsx";
@@ -10,20 +10,23 @@ function Login()
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [validated, setValidated] = React.useState(false);
-    const [errors, setErrors] = React.useState(false);
+    const [errors, setErrors] = React.useState([]);
 
     const handleSubmit = async (e)=>{
         e.preventDefault();
-        const axiosConfig = {
-            method: 'POST',
-            url: 'http://localhost:3000/users/',
-            headers: {'Content-Type': 'application/json'},
-            data: {username, password}
-        };
         try
         {
-            let response = await axios(axiosConfig);
-            localStorage.setItem("loginData", JSON.stringify(response.data));
+            let response = await client.post(
+                '/users/',
+                {username, password},
+                {
+                    headers: {'Content-Type': 'application/json'},
+                }
+            );
+            const {accessToken, refreshToken, user} = response.data;
+            client.accessToken = accessToken;
+            client.refreshToken = refreshToken;
+            client.user = user;
             window.location.href="/";
         }
         catch(err)
@@ -37,6 +40,10 @@ function Login()
             setErrors(responseErrors);
         }
     };
+    if(errors.length)
+    {
+        console.log(errors);
+    }
 
     return(<Container>
         <Form  noValidate validated={validated} onSubmit={handleSubmit}>

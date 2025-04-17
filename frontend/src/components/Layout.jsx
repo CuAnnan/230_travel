@@ -1,24 +1,29 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { Navbar, Nav, NavItem, Container } from 'react-bootstrap';
+import {client} from '../AxiosInterceptor.js';
 
 
 function Layout()
 {
-    const loginData = localStorage.getItem("loginData");
+    const loginData = localStorage.getItem("user");
 
     const userSections = [];
+    const linkSections = [];
+
     const logout = (e)=>{
-        localStorage.removeItem("loginData");
+        e.preventDefault();
+        client.clearTokens();
         window.location.reload();
     }
 
     if(loginData)
     {
-        const json = JSON.parse(loginData);
-        const {user} = json;
-        console.log(user);
-        userSections.push(<Link key="1" onClick={logout}>Logout ({user.username})</Link>);
+        const user = JSON.parse(loginData);
+        userSections.push(<Link to="/account"  className="nav-link"  key="2">Account</Link> );
+        userSections.push(<Link to="#" key="1"  className="nav-link" onClick={logout}>Logout ({user.username})</Link>);
+        linkSections.push(<Link to="#" key="1" className="nav-link" onClick={(e)=>{e.preventDefault();}}>Journey Plans</Link>);
+        linkSections.push(<Link to="#" key="2" className="nav-link" onClick={(e)=>{e.preventDefault();}}>Travel Logs</Link>);
     }
     else
     {
@@ -35,6 +40,7 @@ function Layout()
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
                             <Link to="/" className="nav-link">Home</Link>
+                            {linkSections}
                         </Nav>
                         <Nav className="ml-auto">
                             {userSections}
