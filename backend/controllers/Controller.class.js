@@ -85,6 +85,11 @@ class Controller {
         await this.query("COMMIT");
     }
 
+    async rollback()
+    {
+        await this.query("ROLLBACK");
+    }
+
     sendErrorResponse(res, message="Query string failed")
     {
         console.error(message);

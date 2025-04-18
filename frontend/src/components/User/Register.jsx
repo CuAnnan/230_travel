@@ -1,18 +1,16 @@
 import React from 'react';
 import {Container,InputGroup, Button, Row, Col, Form} from 'react-bootstrap';
-import {client} from '../AxiosInterceptor.js';
+import {client} from '../../AxiosInterceptor.js';
 
-import FormField from './FormField.jsx';
+import FormField from '../FormField.jsx';
 
 function Register()
 {
-    const user = client.user;
-
+    const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
-    const [newPassword, setNewPassword] = React.useState('');
     const [passwordConfirmation, setPasswordConfirmation] = React.useState('');
-    const [email, setEmail] = React.useState(user.email);
-    const [address, setAddress] = React.useState(user.address);
+    const [email, setEmail] = React.useState('');
+    const [address, setAddress] = React.useState('');
     const [validated, setValidated] = React.useState(false);
     const [errors, setErrors] = React.useState([]);
 
@@ -20,10 +18,8 @@ function Register()
         e.preventDefault();
         try
         {
-            await client.patch('/users', {password, newPassword, passwordConfirmation, email, address}, {headers: {'Content-Type': 'application/json'}});
-            user.email = email;
-            user.address = address;
-            client.user = user;
+            const response = await client.post('/users/register', {username, password, passwordConfirmation, email, address}, {headers: {'Content-Type': 'application/json'}});
+            console.log(response);
             setErrors([]);
             setValidated(true);
         }
@@ -42,30 +38,27 @@ function Register()
 
 
     return (<Container>
-        <h2 className="text-center">Account details</h2>
+        <h2 className="text-center">New Account Registration</h2>
         <Form noValidate validated={validated} onSubmit={handleSubmit}>
             <Row className="mb-3">
+                <FormField id="username" field={username} setField={setUsername} label="Username" inputGroupPrefix="&#128100;"/>
                 <FormField id="address" field={address} setField={setAddress} label="Address" inputGroupPrefix="&#9993;"/>
             </Row>
             <Row className="mb-3">
                 <FormField id="email" field={email} setField={setEmail} label="Email" inputGroupPrefix="@"/>
             </Row>
             <Row className="mb-3">
-                <FormField id="newPassword" field={newPassword} setField={setNewPassword} type="password" label="New Password"/>
+                <FormField id="password" field={password} setField={setPassword} type="password" label="Password"/>
                 <FormField id="passwordConfirmation" field={passwordConfirmation} setField={setPasswordConfirmation} type="password" label="Confirm Password"/>
             </Row>
-            <Row className="mb-3">
-                <FormField id="password" field={password} setField={setPassword} type="password" label="Password"/>
-            </Row>
-
 
             {errors.map((error, idx)=>(<Row className="error" key={idx}><Col>{error}</Col></Row>))}
             {validated ? (<Row>
-                Account successfully updated!
+                You have successfully registered.
             </Row>):""}
             <Row>
                 <Col>
-                    <Button variant="primary" type="submit">Update</Button>
+                    <Button variant="primary" type="submit">Register</Button>
                 </Col>
             </Row>
         </Form>

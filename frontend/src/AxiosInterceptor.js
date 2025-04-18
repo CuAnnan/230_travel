@@ -10,7 +10,6 @@ class AxiosInterceptor
     #isRefreshing = false;
     #refreshSubscribers = [];
 
-
     constructor(config = {})
     {
         this.#axiosInstance = axios.create({...config});

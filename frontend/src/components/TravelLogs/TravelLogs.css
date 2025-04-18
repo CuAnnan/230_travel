@@ -1,0 +1,28 @@
+.travelLogTitles
+{
+    font-weight:bold;
+}
+
+.travelLog:nth-child(even)
+{
+    background-color:#ccc;
+}
+
+.tag
+{
+    border: 1px solid black;
+    border-radius: 3px;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-left: 2px;
+    margin-right: 2px;
+    display: inline-block;
+    background-color: #999;
+    color: white;
+}
+
+.tag:nth-child(even)
+{
+    background-color: #eee;
+    color: black;
+}

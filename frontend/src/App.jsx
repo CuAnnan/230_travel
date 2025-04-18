@@ -3,10 +3,10 @@ import {Routes, Route, Outlet, Navigate} from "react-router-dom";
 
 import Layout from "./components/Layout.jsx";
 import Index from "./components/Index.jsx";
-import Register from "./components/Register.jsx";
-import Login from "./components/Login.jsx";
-import Account from './components/Account.jsx';
-import TravelLogs from "./components/TravelLogs.jsx";
+import Register from "./components/User/Register.jsx";
+import Login from "./components/User/Login.jsx";
+import Account from './components/Account/Account.jsx';
+import TravelLogs from "./components/TravelLogs/TravelLogs.jsx";
 
 import {client} from "./AxiosInterceptor.js";
 

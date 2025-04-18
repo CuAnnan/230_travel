@@ -7,6 +7,61 @@ class TravelLogController extends Controller
         super();
     }
 
+    async insertAndGetTags(tags, idTravelLogs)
+    {
+        let replacePlaceHolders = [];
+        let selectPlaceHolders = [];
+        let joinerPlaceHolders = [];
+
+        for(let tag of tags)
+        {
+            replacePlaceHolders.push('(?)');
+            selectPlaceHolders.push('?');
+            joinerPlaceHolders.push('(?, ?)');
+        }
+
+        let replaceTagsQuery = await this.query("INSERT INTO Tags (tag) VALUES "+replacePlaceHolders.join(', ')+" ON DUPLICATE KEY UPDATE tag=tag", tags);
+        let idsQuery = await this.query(`SELECT idTags, tag from Tags where tag in (${selectPlaceHolders.join(', ')})`, tags);
+        let tagIds = [];
+        let insertArray =  [];
+        let tagsArray = [];
+        for(let row of idsQuery.results)
+        {
+            tagIds.push(row.idTags);
+            tagsArray.push(row)
+            insertArray.push(row.idTags);
+            insertArray.push(idTravelLogs);
+        }
+        await this.query(`DELETE FROM TravelLogs_has_Tags WHERE idTravelLogs = ? AND idTags NOT IN (${selectPlaceHolders.join(', ')})`, [idTravelLogs, ...tagIds]);
+        await this.query(`INSERT INTO TravelLogs_has_Tags (idTags, idTravelLogs) VALUES ${joinerPlaceHolders.join(', ')} ON DUPLICATE KEY UPDATE idTags=idTags`, insertArray);
+        return tagsArray;
+    }
+
+    async addTravelLog(req, res)
+    {
+        if(!req.user)
+        {
+            res.status(500).json({add:false, errors:["Authentication failed"]});
+            return;
+        }
+        await this.beginTransaction();
+        try
+        {
+            const insertQRY = await this.query("INSERT INTO TravelLogs (idUsers, title, startDate, endDate, description) VALUES (?, ?, ?, ?, ?)", [req.user.idUsers, req.body.title, req.body.startDate, req.body.endDate, req.body.description]);
+            const idTravelLogs = insertQRY.results.insertId;
+            let tags = await this.insertAndGetTags(req.body.tags, idTravelLogs);
+
+            res.json({insertId:insertQRY.results.insertId, tags});
+            await this.commit();
+        }
+        catch(err)
+        {
+            console.log(err);
+            res.json({error:"Unexpected error occurred"});
+            await this.rollback();
+        }
+    }
+
     async getTravelLogsForUser(req, res)
     {
         if(!req.user)
@@ -19,12 +74,11 @@ class TravelLogController extends Controller
             "SELECT " +
                             "log.*, tag.* " +
                         "FROM " +
-                            "Users_has_TravelLogs utl " +
-                            "LEFT JOIN TravelLogs log USING (idTravelLogs) " +
+                            "TravelLogs log " +
                             "LEFT JOIN TravelLogs_has_Tags USING (idTravelLogs) " +
                             "LEFT JOIN Tags tag USING (idTags) " +
                         "WHERE " +
-                            "utl.idUsers = ?",
+                            "log.idUsers = ?",
             [req.user.idUsers]
         );
 
@@ -33,7 +87,7 @@ class TravelLogController extends Controller
         query.results.forEach((result) => {
             if(lastResult.idTravelLogs !== result.idTravelLogs)
             {
-                if(lastResult)
+                if(lastResult.idTravelLogs !== -1)
                 {
                     results.push(lastResult);
                 }
@@ -44,6 +98,11 @@ class TravelLogController extends Controller
             const {idTags, tag} = result;
             lastResult.tags.push({idTags, tag});
         });
+
+        if(lastResult.idTravelLogs !== -1)
+        {
+            results.push(lastResult);
+        }
 
         res.json(results);
     }

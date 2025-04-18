@@ -1,9 +1,9 @@
 import React from 'react';
 import {Container,InputGroup, Button, Row, Col, Form} from 'react-bootstrap';
-import {client} from '../AxiosInterceptor.js';
+import {client} from '../../AxiosInterceptor.js';
 
 
-import FormField from "./FormField.jsx";
+import FormField from "../FormField.jsx";
 
 function Login()
 {

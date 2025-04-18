@@ -18,15 +18,21 @@ function FormField({field, setField, type, id, label, inputGroupPrefix, inputGro
         </ul></Form.Control.Feedback>;
     }
 
+    const formControl = type ==='textarea'?<Form.Control id={id} required as="textarea" value={field} onChange={(e) => {
+        let value = e.target.value;
+        setField(value);
+    }}/>:<Form.Control id={id} required type={type?type:"text"} value={field} onChange={(e) => {
+        let value = e.target.value;
+        setField(value);
+    }}/>;
+
+
     return(
         <Form.Group as={Col}>
             <Form.Label htmlFor={id}>{label}</Form.Label>
             <InputGroup>
                 {inputGroupPrefixElement}
-                <Form.Control id={id} required type={type?type:"text"} value={field} onChange={(e) => {
-                    let value = e.target.value;
-                    setField(value);
-                }}/>
+                {formControl}
                 {inputGroupSuffixElement}
             </InputGroup>
             {errorElement}
