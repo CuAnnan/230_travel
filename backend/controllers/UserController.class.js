@@ -55,6 +55,7 @@ class UserController extends Controller
         });
     }
 
+
     async logUserIn(req, res)
     {
         try
@@ -63,7 +64,7 @@ class UserController extends Controller
             delete user.passwordHash;
             const userToken = Object.assign({}, user);
 
-            const accessToken = jwt.sign(userToken,conf.express.jwt.secret,{expiresIn: '1h'});
+            const accessToken = jwt.sign(userToken,conf.express.jwt.secret,{expiresIn: '1m'});
             const refreshToken = jwt.sign(userToken, conf.express.jwt.secret, {expiresIn: '1d'});
             res.status(200).json({login: true, accessToken, refreshToken, user:userToken});
         }
@@ -123,7 +124,6 @@ class UserController extends Controller
     {
         if(!req.user)
         {
-            console.log("Token error failed");
             res.status(500).json({update:false, errors:["Authentication failed"]});
             return;
         }
@@ -202,23 +202,18 @@ class UserController extends Controller
             return;
         }
 
-        let query = await this.query('SELECT passwordHash from Users WHERE idUsers = ?',[req.user.idUsers]);
-        let row = query.results[0];
-        if(row)
+        try
         {
-            bcrypt.compare(req.body.password, row.passwordHash, (err, result) => {
-                if(err)
-                {
-                    res.status(400).json({authenticated:false});
-                }
-                else
-                {
-                    this.query("DELETE FROM Users WHERE idUsers = ?", [req.user.idUsers]);
-                    res.json({deleted:true});
-                }
-            });
+            await this.confirmUserId(req.user.username, req.body.password);
+            await this.query("DELETE FROM Users WHERE idUsers = ?", [req.user.idUsers]);
+            res.json({deleted:true});
         }
-        this.sendErrorResponse(res, "Unanticipated error");
+        catch(err)
+        {
+            console.log(err);
+            res.status(500).json({deleted:false, errors:["Unexpected error"]});
+        }
+
     }
 
     static getInstance()

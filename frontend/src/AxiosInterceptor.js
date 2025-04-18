@@ -33,7 +33,6 @@ class AxiosInterceptor
             (response) => response,
             async (error) => {
                 const originalRequest = error.config;
-
                 if (
                     error.response &&
                     error.response.status === 401 &&
@@ -56,8 +55,7 @@ class AxiosInterceptor
                             return this.#axiosInstance(originalRequest);
                         } catch (refreshError) {
                             this.#refreshSubscribers = []; // Clear the queue in case of failure
-                            this.accessToken = "";
-                            this.refreshToken = "";
+                            this.clearTokens();
                             return Promise.reject(refreshError);
                         } finally {
                             this.#isRefreshing = false;
@@ -133,7 +131,15 @@ class AxiosInterceptor
 
     set accessToken(accessToken)
     {
-        localStorage.setItem("accessToken", accessToken);
+        if(accessToken)
+        {
+            localStorage.setItem("accessToken", accessToken);
+        }
+        else
+        {
+            localStorage.removeItem("accessToken");
+        }
+
     }
 
     get refreshToken()
@@ -143,7 +149,14 @@ class AxiosInterceptor
 
     set refreshToken(refreshToken)
     {
-        localStorage.setItem("refreshToken", refreshToken);
+        if(refreshToken)
+        {
+            localStorage.setItem("refreshToken", refreshToken);
+        }
+        else
+        {
+            localStorage.removeItem("refreshToken");
+        }
     }
 
     async refreshTokens() {
@@ -152,7 +165,7 @@ class AxiosInterceptor
             throw new Error("No refresh token available");
         }
 
-        const response = await this.#axiosInstance.post("/auth/refreshToken", {refreshToken});
+        const response = await this.#axiosInstance.post("/users/refreshToken", {refreshToken});
         return response.data; // Expecting { accessToken: string, refreshToken: string }
     }
 }

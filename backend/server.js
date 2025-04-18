@@ -5,12 +5,9 @@ import http from 'http';
 import conf from './conf.js';
 
 import userRouter from './routes/users.js';
-
-
-
+import logRouter from './routes/logs.js';
 
 const port = conf.express.port;
-
 
 const app = express();
 app.use(cors());
@@ -19,8 +16,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.use('/users', userRouter);
-
-
+app.use('/user', userRouter);
+app.use('/logs', logRouter);
+app.use('/log', logRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

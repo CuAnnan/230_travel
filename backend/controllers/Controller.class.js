@@ -2,8 +2,7 @@ import mysql from 'mysql';
 import conf from '../conf.js';
 import jwt from "jsonwebtoken";
 
-class Controller
-{
+class Controller {
     static db;
     static instance;
     static inTransaction;
@@ -15,9 +14,25 @@ class Controller
     }
 
     // ensure that each controller class has a static getInstance method
-    static getInstance()
-    {
+    static getInstance() {
         throw new Error("getInstance method not implemented.");
+    }
+
+    async refreshJWTToken(req, res)
+    {
+        try
+        {
+            const {idUsers, username, email, address} = await jwt.verify(req.body.refreshToken, conf.express.jwt.secret);
+            const newUserToken = {idUsers, username, email, address};
+            const accessToken = jwt.sign(newUserToken, conf.express.jwt.secret,{expiresIn: '1m'});
+            const refreshToken = jwt.sign(newUserToken, conf.express.jwt.secret, {expiresIn: '1d'});
+            res.status(200).json({accessToken, refreshToken});
+        }
+        catch(e)
+        {
+            console.log(e);
+            res.status(500).sent({error:"An error occured"})
+        }
     }
 
     async checkForJWTToken(req, res, next)
@@ -31,8 +46,7 @@ class Controller
         }
         catch(e)
         {
-            console.log(e);
-            res.status(401).json({authenticated:false});
+            res.status(401).json({message:"TokenExpiredError"});
         }
     }
 

@@ -6,6 +6,7 @@ import Index from "./components/Index.jsx";
 import Register from "./components/Register.jsx";
 import Login from "./components/Login.jsx";
 import Account from './components/Account.jsx';
+import TravelLogs from "./components/TravelLogs.jsx";
 
 import {client} from "./AxiosInterceptor.js";
 
@@ -24,6 +25,7 @@ function App() {
       <Route path="/login" element={<Login />}/>
       <Route element={<PrivateRoutes/>}>
         <Route path="/account" element={<Account />}/>
+        <Route path="/logs" element={<TravelLogs />}/>
       </Route>
     </Route>
   </Routes>);
