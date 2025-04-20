@@ -8,6 +8,18 @@
     background-color:#ccc;
 }
 
+.travelLogTitles div:last-child, .travelLog div:last-child
+{
+    text-align:right;
+    flex: 0.316 0 0;
+    display: flex;
+}
+
+.dateCol
+{
+    flex:0.39 0 0;
+}
+
 .tag
 {
     border: 1px solid black;
@@ -17,12 +29,9 @@
     margin-left: 2px;
     margin-right: 2px;
     display: inline-block;
-    background-color: #999;
-    color: white;
 }
 
-.tag:nth-child(even)
+.buttons
 {
-    background-color: #eee;
-    color: black;
+
 }

@@ -37,6 +37,30 @@ class TravelLogController extends Controller
         return tagsArray;
     }
 
+    async updateTravelLog(req, res)
+    {
+        if(!req.user)
+        {
+            res.status(500).json({add:false, errors:["Authentication failed"]});
+            return;
+        }
+        await this.beginTransaction();
+        try
+        {
+            const updateQRY = await this.query("UPDATE TravelLogs SET title=?, startDate = ?, endDate = ?, description = ? WHERE idTravelLogs = ? AND idUsers = ?", [req.body.title, req.body.startDate, req.body.endDate, req.body.description, req.body.idTravelLogs, req.user.idUsers]);
+            let tags = await this.insertAndGetTags(req.body.tags, req.body.idTravelLogs);
+            await this.commit();
+            res.json({tags});
+        }
+        catch(e)
+        {
+            console.error(e);
+            res.status(500).json({error:"Unexpected error occurred"});
+            await this.rollback();
+        }
+
+    }
+
     async addTravelLog(req, res)
     {
         if(!req.user)
@@ -50,15 +74,14 @@ class TravelLogController extends Controller
             const insertQRY = await this.query("INSERT INTO TravelLogs (idUsers, title, startDate, endDate, description) VALUES (?, ?, ?, ?, ?)", [req.user.idUsers, req.body.title, req.body.startDate, req.body.endDate, req.body.description]);
             const idTravelLogs = insertQRY.results.insertId;
             let tags = await this.insertAndGetTags(req.body.tags, idTravelLogs);
-
-            res.json({insertId:insertQRY.results.insertId, tags});
             await this.commit();
+            res.json({insertId:insertQRY.results.insertId, tags});
         }
         catch(err)
         {
-            console.log(err);
+            console.error(err);
+            res.status(500).json({error:"Unexpected error occurred"});
             res.json({error:"Unexpected error occurred"});
-            await this.rollback();
         }
     }
 
@@ -105,6 +128,25 @@ class TravelLogController extends Controller
         }
 
         res.json(results);
+    }
+
+    async deleteTravelLog(req, res)
+    {
+        if(!req.user)
+        {
+            res.status(500).json({update:false, errors:["Authentication failed"]});
+        }
+
+        try
+        {
+            let query = await this.query("DELETE FROM TravelLogs WHERE idUsers = ? AND idTravelLogs = ?", [req.user.idUsers, req.params.idTravelLogs]);
+            res.json({delete:true});
+        }
+        catch(e)
+        {
+            console.error(e);
+            res.status(500).json({error:"Unexpected error occurred"});
+        }
     }
 
     static getInstance()

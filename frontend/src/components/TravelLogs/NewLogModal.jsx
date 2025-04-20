@@ -3,12 +3,11 @@ import {client} from '../../AxiosInterceptor.js';
 
 import FormField from '../FormField.jsx';
 
-function NewLogModal({isNewLog, modal, setModal, idLog, title, setTitle, startDate, setStartDate, endDate, setEndDate, description, setDescription, tags=[], setTags, travelPlans, setTravelPlans})
+function NewLogModal({isNewLog, modal, setModal, title, setTitle, startDate, setStartDate, endDate, setEndDate, description, setDescription, tags=[], setTags, travelLogs, setTravelLogs, idTravelLogs, travelLog, setTravelLog})
 {
     const handleClose = ()=>{
         setModal(false);
     };
-
     return (<Modal show={modal} onHide={handleClose}>
         <Modal.Header closeButton>
             <Modal.Title>{isNewLog?"New":"Edit"} Log</Modal.Title>
@@ -29,7 +28,7 @@ function NewLogModal({isNewLog, modal, setModal, idLog, title, setTitle, startDa
                     <Form.Group as={Col}>
                         <Form.Label htmlFor="tags">Tags (comma separated list)</Form.Label>
                         <InputGroup>
-                            <Form.Control id="tags" value={tags.join(",")} onChange={(e) => {
+                            <Form.Control id="tags" value={tags.join(", ")} onChange={(e) => {
                                 setTags(e.target.value.split(","));
                             }}/>
                         </InputGroup>
@@ -43,24 +42,39 @@ function NewLogModal({isNewLog, modal, setModal, idLog, title, setTitle, startDa
             </Button>
             <Button variant="primary" onClick={async()=>{
                 let http = client.patch;
-                const data = {title, startDate, endDate, description, tags:tags.map((tag, idx)=>tag.trim())};
+                const data = {title, startDate, endDate, description, tags:tags.map((tag)=>tag.trim())};
                 if(isNewLog)
                 {
                     http = client.post;
                 }
                 else
                 {
-                    data.idLog = idLog;
+                    data.idTravelLogs = idTravelLogs;
                 }
 
-                const response = await http('/logs', data, {headers:{"Content-Type": "application/json"}});
+
+                const response = await http('/logs', data, {headers: {"Content-Type": "application/json"}});
+                data.tags = response.data.tags;
                 if(isNewLog)
                 {
                     data.idTravelLogs = response.data.insertId;
-                    data.tags = response.data.tags;
-                    setTravelPlans([...travelPlans, data]);
-                    setModal(false);
+                    setTravelLogs([...travelLogs, data]);
                 }
+                else
+                {
+                    setTravelLogs(travelLogs.map(log=>{
+                        if(log.idTravelLogs === travelLog.idTravelLogs)
+                        {
+                            console.log(data);
+                            return data;
+                        }
+                        else
+                        {
+                            return log;
+                        }
+                    }))
+                }
+                setModal(false);
             }}>
                 Save Changes
             </Button>

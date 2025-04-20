@@ -22,8 +22,8 @@ function Layout()
         const user = JSON.parse(loginData);
         userSections.push(<Link to="/account"  className="nav-link"  key="2">Account</Link> );
         userSections.push(<Link to="#" key="1"  className="nav-link" onClick={logout}>Logout ({user.username})</Link>);
-        linkSections.push(<Link to="/logs" key="1" className="nav-link">Journey Plans</Link>);
-        linkSections.push(<Link to="#" key="2" className="nav-link" onClick={(e)=>{e.preventDefault();}}>Travel Logs</Link>);
+        linkSections.push(<Link to="/logs" key="1" className="nav-link">Travel Logs</Link>);
+        linkSections.push(<Link to="#" key="2" className="nav-link" onClick={(e)=>{e.preventDefault();}}>Journey Plans</Link>);
     }
     else
     {

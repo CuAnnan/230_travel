@@ -26,6 +26,24 @@ router.post(
     }
 );
 
+router.patch(
+    '/',
+    controller.checkForJWTToken,
+    (req, res)=>{
+        controller.updateTravelLog(req, res).catch((error)=>{
+            console.warn(error);
+        });
+    }
+);
 
+router.delete(
+    '/:idTravelLogs',
+    controller.checkForJWTToken,
+    (req, res)=>{
+        controller.deleteTravelLog(req, res).catch((error)=>{
+            console.error(error);
+        })
+    }
+);
 
 export default router;
