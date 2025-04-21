@@ -6,6 +6,7 @@ import conf from './conf.js';
 
 import userRouter from './routes/users.js';
 import logRouter from './routes/logs.js';
+import journeyRouter from './routes/journeys.js';
 
 const port = conf.express.port;
 
@@ -19,6 +20,8 @@ app.use('/users', userRouter);
 app.use('/user', userRouter);
 app.use('/logs', logRouter);
 app.use('/log', logRouter);
+app.use('/journeys', journeyRouter);
+app.use('/journey', journeyRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

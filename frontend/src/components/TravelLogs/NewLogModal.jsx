@@ -3,7 +3,7 @@ import {client} from '../../AxiosInterceptor.js';
 
 import FormField from '../FormField.jsx';
 
-function NewLogModal({isNewLog, modal, setModal, title, setTitle, startDate, setStartDate, endDate, setEndDate, description, setDescription, tags=[], setTags, travelLogs, setTravelLogs, idTravelLogs, travelLog, setTravelLog})
+function NewLogModal({isNewLog, modal, setModal, title, setTitle, startDate, setStartDate, endDate, setEndDate, description, setDescription, tags=[], setTags, travelLogs, setTravelLogs, idTravelLogs, travelLog})
 {
     const handleClose = ()=>{
         setModal(false);
@@ -65,7 +65,6 @@ function NewLogModal({isNewLog, modal, setModal, title, setTitle, startDate, set
                     setTravelLogs(travelLogs.map(log=>{
                         if(log.idTravelLogs === travelLog.idTravelLogs)
                         {
-                            console.log(data);
                             return data;
                         }
                         else

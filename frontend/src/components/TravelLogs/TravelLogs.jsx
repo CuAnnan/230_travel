@@ -3,6 +3,7 @@ import {Button, Row, Col, Container} from 'react-bootstrap';
 import {client} from '../../AxiosInterceptor.js';
 import './TravelLogs.css';
 import md5 from "../md5.js";
+import formatDate from "../formatDate.js";
 
 
 
@@ -30,12 +31,6 @@ function TravelLogs()
             console.log(err);
         });
     }, []);
-
-    const formatDate = (dateString)=> new Date(dateString).toLocaleDateString('en-IE', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
 
     const generateColorCode = (textString)=>md5(textString).substring(0, 6);
     console.log(travelLogs);

@@ -2,6 +2,12 @@ import Controller from "./Controller.class.js";
 
 class TravelLogController extends Controller
 {
+    static #instance;
+    static
+    {
+        this.#instance = new TravelLogController();
+    }
+
     constructor()
     {
         super();
@@ -151,11 +157,7 @@ class TravelLogController extends Controller
 
     static getInstance()
     {
-        if(!this.instance)
-        {
-            this.instance = new TravelLogController();
-        }
-        return this.instance;
+        return this.#instance;
     }
 }
 

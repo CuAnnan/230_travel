@@ -7,7 +7,13 @@ const PASSWORD_SALTS = 15;
 
 class UserController extends Controller
 {
-    static instance;
+    static #instance;
+
+    static
+    {
+        this.#instance = new UserController();
+    }
+
 
     constructor()
     {
@@ -218,11 +224,7 @@ class UserController extends Controller
 
     static getInstance()
     {
-        if(!this.instance)
-        {
-            this.instance = new UserController();
-        }
-        return this.instance;
+        return this.#instance;
     }
 }
 

@@ -1,0 +1,21 @@
+.dateCol
+{
+    flex:0.39 0 0;
+}
+
+.planTitle
+{
+    font-weight:bold;
+}
+
+.journeyPlanList
+{
+    list-style: none;
+    padding:0;
+}
+
+
+.journeyPlanRow:nth-child(odd)
+{
+    background:#efefef;
+}

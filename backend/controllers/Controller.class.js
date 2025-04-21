@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 class Controller {
     static db;
-    static instance;
+    static #instance;
     static inTransaction;
 
     // instantiating the static database connection
