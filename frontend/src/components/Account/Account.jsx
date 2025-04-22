@@ -15,6 +15,9 @@ function Register()
     const [address, setAddress] = React.useState(user.address);
     const [validated, setValidated] = React.useState(false);
     const [errors, setErrors] = React.useState([]);
+    const [confirmDelete, setConfirmDelete] = React.useState(false);
+    const [deleteButtonText , setDeleteButtonText] = React.useState("Delete Account");
+    const [deleteButtonClass, setDeleteButtonClass] = React.useState("warning");
 
     const handleSubmit = async (e)=>{
         e.preventDefault();
@@ -39,6 +42,19 @@ function Register()
         }
 
     }
+
+    const resetDeleteButton = () => {
+        setConfirmDelete(false);
+        setDeleteButtonText("Delete Account");
+        setDeleteButtonClass("warning");
+    };
+
+    React.useEffect(() => {
+        document.body.addEventListener("click", resetDeleteButton);
+        return () => {
+            document.body.removeEventListener("click", resetDeleteButton);
+        };
+    }, []);
 
 
     return (<Container>
@@ -66,6 +82,27 @@ function Register()
             <Row>
                 <Col>
                     <Button variant="primary" type="submit">Update</Button>
+                    <Button variant={deleteButtonClass} onClick={(e)=>{
+                        e.stopPropagation();
+                        console.log(password)
+                        if(confirmDelete)
+                        {
+                            setDeleteButtonText("Deleting Account");
+                            client.delete('/users/',
+                            {headers: {'Content-Type': 'application/json'}, data:{password}}).then(()=> {
+                                client.clearTokens();
+                                window.location.href="/login";
+                            });
+                        }
+                        else
+                        {
+                            setConfirmDelete(true);
+                            setDeleteButtonText("Confirm Delete Account");
+                            setDeleteButtonClass("danger");
+                        }
+                    }}>
+                        {deleteButtonText}
+                    </Button>
                 </Col>
             </Row>
         </Form>

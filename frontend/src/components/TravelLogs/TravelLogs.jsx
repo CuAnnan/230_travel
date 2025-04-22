@@ -33,7 +33,7 @@ function TravelLogs()
     }, []);
 
     const generateColorCode = (textString)=>md5(textString).substring(0, 6);
-    console.log(travelLogs);
+
 
     return (<>
         <h2 className="text-center">Travel Logs</h2>

@@ -43,6 +43,7 @@ class UserController extends Controller
             if(!user)
             {
                 reject(userNotFoundError);
+                return;
             }
             bcrypt.compare(password, user.passwordHash, (err, result) => {
                 if (err) {
@@ -77,7 +78,7 @@ class UserController extends Controller
         catch(err)
         {
             console.log(err);
-            res.json({login:false});
+            res.status(401).json({login:false, errors:["Username or password incorrect"]});
         }
     }
 
@@ -202,12 +203,7 @@ class UserController extends Controller
 
     async deleteUser(req, res)
     {
-        if(!req.user)
-        {
-            res.status(400).json({authenticated:false});
-            return;
-        }
-
+        console.log(req.body);
         try
         {
             await this.confirmUserId(req.user.username, req.body.password);
@@ -217,7 +213,7 @@ class UserController extends Controller
         catch(err)
         {
             console.log(err);
-            res.status(500).json({deleted:false, errors:["Unexpected error"]});
+            res.status(401).json({deleted:false, errors:["Password verification failed"]});
         }
 
     }

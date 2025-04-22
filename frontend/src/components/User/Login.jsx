@@ -24,6 +24,7 @@ function Login()
                 }
             );
             const {accessToken, refreshToken, user} = response.data;
+
             client.accessToken = accessToken;
             client.refreshToken = refreshToken;
             client.user = user;
@@ -40,10 +41,7 @@ function Login()
             setErrors(responseErrors);
         }
     };
-    if(errors.length)
-    {
-        console.log(errors);
-    }
+
 
     return(<Container>
         <Form  noValidate validated={validated} onSubmit={handleSubmit}>
@@ -58,6 +56,9 @@ function Login()
                     <Button variant="primary" type="submit">Login</Button>
                 </Col>
             </Row>
+            {errors.map((error, idx)=>{
+                return (<Row key={idx} className="mb-3 error">{error}</Row>)
+            })}
         </Form>
     </Container>);
 }
