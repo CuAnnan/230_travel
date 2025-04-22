@@ -77,14 +77,15 @@ class JourneyPlanController extends Controller
                 [req.user.idUsers, req.body.name, req.body.startDate, req.body.endDate, req.body.description]
             );
             const idPlans = plansQry.results.insertId;
-            const activityIds = this.addActivities(idPlans, req.body.activities);
-            const countryIds = this.addLocations(idPlans, req.body.locations);
+            const activityIds = await this.addActivities(idPlans, req.body.activities);
+            const countryIds = await this.addLocations(idPlans, req.body.locations);
 
             await this.commit();
-            this.res({idPlans, activityIds, countryIds});
+            res.send({idPlans, activityIds, countryIds});
         }
         catch(e)
         {
+            console.error(e);
             await this.rollback();
             res.status(500).send({error:"Unanticipated error occurred"});
         }
@@ -99,7 +100,6 @@ class JourneyPlanController extends Controller
     async updatePlan(req, res)
     {
         await this.beginTransaction();
-
         try
         {
             await this.query(
@@ -107,12 +107,11 @@ class JourneyPlanController extends Controller
                 [req.body.name, req.body.startDate, req.body.endDate, req.body.description, req.body.idJourneyPlans, req.user.idUsers],
             );
 
-            const activityIds = this.addActivities(req.body.idJourneyPlans, req.body.activities);
-            const countryIds = this.addLocations(req.body.idJourneyPlans, req.body.locations);
-
+            const activities =await this.addActivities(req.body.idJourneyPlans, req.body.activities);
+            const locations = await this.addLocations(req.body.idJourneyPlans, req.body.locations);
 
             await this.commit();
-            res.json({activityIds, countryIds});
+            res.json({activities, locations});
         }
         catch(e)
         {
