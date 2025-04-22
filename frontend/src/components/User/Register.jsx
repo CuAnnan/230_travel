@@ -16,6 +16,25 @@ function Register()
 
     const handleSubmit = async (e)=>{
         e.preventDefault();
+        const newErrors = []
+        if(password.length < 8)
+        {
+            newErrors.push("Password is too short");
+        }
+        if(password !== passwordConfirmation)
+        {
+            newErrors.push("Password strings don't match");
+        }
+        if(!email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/))
+        {
+            newErrors.push("Email is invalid");
+        }
+        setErrors(newErrors);
+        if(newErrors.length > 0)
+        {
+            return;
+        }
+
         try
         {
             const response = await client.post('/users/register', {username, password, passwordConfirmation, email, address}, {headers: {'Content-Type': 'application/json'}});
